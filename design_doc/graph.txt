@@ -1,0 +1,31 @@
+Device: abstraction for a entity that has storage and compute capability
+A default device must exist.
+
+Value: an entity that is device independent
+
+Node: node is an entity that can have zero or more runtime inputs and produces zero or 1 runtime output (that may feed in to many nodes.)
+Node can have static attributes.
+Node does not need to bind inputs or outputs at construction time. Static atrributes need to be given at construction.
+Every node must provide an eval method, given a defice and ordered input value(s), produces output value.
+
+
+Output (def-use chain): captures a single output value from a node and connects it to input(s) of one or more nodes.
+
+Input (use-def chain): captures a single input value that is produced from a node.
+
+Op: Op is a collection of connected nodes (or pattern of nodes)
+Op has inputs and output(s)
+Op must provide an ordered mapping of its inputs and outputs to internal node's inputs and outputs.
+Op is a graph builder pattern
+Device may provide a specialized eval method for an Op. If not, a fallback that calls eval methods of internal nodes is provided.
+
+
+Op(Pattern) Matching:
+
+Graph execution:
+- Define as go (eager)
+- Frozen graph
+- Asynchronous
+- Lazy
+- Multi device
+- Hetro device
