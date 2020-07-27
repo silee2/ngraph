@@ -1,12 +1,26 @@
 Device: abstraction for a entity that has storage and compute capability
 A default device must exist.
+Every device must provide a to_host method that moves value from device to host and a from_host method that moves a value from host to device.
 
 Value: an entity that is device independent
+Value is opaque and can only be accessed with to_plain method
+This enables lazy evaluation as Value can actually be a built up higher other function that produces an entity.
 
-Node: node is an entity that can have zero or more runtime inputs and produces zero or 1 runtime output (that may feed in to many nodes.)
+Node: node is an entity that can have zero or more runtime inputs and produces 1 or 2 runtime output (that may feed in to many nodes.)
+First output is a special output (Output 0) that represents signal
+Node are like math functions except that zero input is allowed and has a special output in addition to zero or more output.
+
 Node can have static attributes.
 Node does not need to bind inputs or outputs at construction time. Static atrributes need to be given at construction.
-Every node must provide an eval method, given a defice and ordered input value(s), produces output value.
+Every node must provide an eval method, given ordered host input value(s), produces host output value.
+Devices can provide an eval method for nodes.
+Every node must provide an memory_estimate() and compute_estimate() method
+Every node must provide an infer output shape method
+Every node must provide an forward method
+
+"Nodes are device independent"
+"Values live on device"
+"Graph describes computation(flow) in an abstract way."
 
 
 Output (def-use chain): captures a single output value from a node and connects it to input(s) of one or more nodes.
