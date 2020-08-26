@@ -74,7 +74,9 @@ void Function::validate_nodes_and_infer_types()
             auto it = std::find(m_parameters.begin(), m_parameters.end(), node);
             if (it == m_parameters.end())
             {
-                throw ngraph_error("Function references undeclared parameter");
+                throw ngraph_error("Function '" + get_name() +
+                                   "' references undeclared parameter '" + node->get_name() +
+                                   "' (Function::validate_nodes_and_infer_types)");
             }
         }
     }
@@ -273,7 +275,8 @@ bool Function::is_dynamic() const
     return false;
 }
 
-void Function::replace_parameter(size_t parameter_index, const shared_ptr<op::Parameter>& parameter)
+void Function::replace_parameter(size_t parameter_index,
+                                 const shared_ptr<op::v0::Parameter>& parameter)
 {
     NGRAPH_CHECK(parameter_index < m_parameters.size(),
                  "replace_parameter(): Tried to replace parameter at index ",

@@ -125,8 +125,6 @@ set (SRC
     op/all.hpp
     op/allreduce.cpp
     op/allreduce.hpp
-    op/and.cpp
-    op/and.hpp
     op/any.cpp
     op/any.hpp
     op/argmax.cpp
@@ -269,8 +267,8 @@ set (SRC
     op/gelu.hpp
     op/gemm.cpp
     op/gemm.hpp
-    op/greater_eq.cpp
-    op/greater_eq.hpp
+    op/greater_equal.cpp
+    op/greater_equal.hpp
     op/greater.cpp
     op/greater.hpp
     op/grn.cpp
@@ -286,12 +284,20 @@ set (SRC
     op/interpolate.hpp
     op/layer_norm.cpp
     op/layer_norm.hpp
-    op/less_eq.cpp
-    op/less_eq.hpp
+    op/less_equal.cpp
+    op/less_equal.hpp
     op/less.cpp
     op/less.hpp
     op/log.cpp
     op/log.hpp
+    op/logical_and.cpp
+    op/logical_and.hpp
+    op/logical_not.cpp
+    op/logical_not.hpp
+    op/logical_or.cpp
+    op/logical_or.hpp
+    op/logical_xor.cpp
+    op/logical_xor.hpp
     op/lrn.cpp
     op/lrn.hpp
     op/lstm_cell.cpp
@@ -326,14 +332,10 @@ set (SRC
     op/normalize_l2.hpp
     op/not_equal.cpp
     op/not_equal.hpp
-    op/not.cpp
-    op/not.hpp
     op/one_hot.cpp
     op/one_hot.hpp
     op/op.cpp
     op/op.hpp
-    op/or.cpp
-    op/or.hpp
     op/pad.cpp
     op/pad.hpp
     op/parameter.cpp
@@ -514,8 +516,6 @@ set (SRC
     op/util/unary_elementwise_arithmetic.hpp
     op/variadic_split.cpp
     op/variadic_split.hpp
-    op/xor.cpp
-    op/xor.hpp
     ops.hpp
     opset/opset.cpp
     partial_shape.cpp
@@ -580,12 +580,12 @@ set (SRC
     pass/memory_visualize.hpp
     pass/nop_elimination.cpp
     pass/nop_elimination.hpp
-    pass/opset0_downgrade.cpp
-    pass/opset0_downgrade.hpp
-    pass/opset1_downgrade.cpp
-    pass/opset1_downgrade.hpp
-    pass/opset1_upgrade.cpp
-    pass/opset1_upgrade.hpp
+    pass/convert_opset_0_to_1.cpp
+    pass/convert_opset_0_to_1.hpp
+    pass/convert_opset_1_to_0.cpp
+    pass/convert_opset_1_to_0.hpp
+    pass/convert_opset_3_to_1.cpp
+    pass/convert_opset_3_to_1.hpp
     pass/pass_config.cpp
     pass/pass_config.hpp
     pass/pass_util.cpp
@@ -699,7 +699,6 @@ set(SRC ${SRC}
 set(OPSETS
     opset/opset0_tbl.hpp
     opset/opset1_tbl.hpp
-    opset/opset2_tbl.hpp
     opset/opset3_tbl.hpp
     opset/opset_orphans_tbl.hpp
 )
@@ -738,6 +737,10 @@ set_target_properties(ngraph PROPERTIES
                       C_VISIBILITY_PRESET hidden
                       VISIBILITY_INLINES_HIDDEN ON)
 
+if(NGRAPH_STL_DEBUG_ENABLE)
+    target_compile_definitions(ngraph PUBLIC ${NGRAPH_STL_DEBUG_DEFINITION})
+endif()
+
 if(NOT NGRAPH_JSON_ENABLE)
     target_compile_definitions(ngraph PUBLIC NGRAPH_JSON_DISABLE)
 endif()
@@ -749,6 +752,14 @@ endif()
 if(NGRAPH_CPU_STATIC_LIB_ENABLE)
     target_compile_definitions(ngraph PUBLIC NGRAPH_CPU_STATIC_LIB_ENABLE)
 endif()
+
+if(NGRAPH_DYNAMIC_COMPONENTS_ENABLE)
+    set_property(SOURCE runtime/backend.cpp APPEND PROPERTY COMPILE_DEFINITIONS NGRAPH_DYNAMIC_COMPONENTS_ENABLE)
+    set_property(SOURCE runtime/backend_manager.cpp APPEND PROPERTY COMPILE_DEFINITIONS NGRAPH_DYNAMIC_COMPONENTS_ENABLE)
+endif()
+
+set_property(SOURCE runtime/backend_manager.cpp APPEND PROPERTY COMPILE_DEFINITIONS SHARED_LIB_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}")
+set_property(SOURCE runtime/backend_manager.cpp APPEND PROPERTY COMPILE_DEFINITIONS SHARED_LIB_SUFFIX="${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
 add_subdirectory(frontend)
 
@@ -765,11 +776,6 @@ endif()
 add_subdirectory(codegen)
 add_subdirectory(runtime)
 
-target_compile_definitions(ngraph
-    PRIVATE
-        SHARED_LIB_PREFIX="${CMAKE_SHARED_LIBRARY_PREFIX}"
-        SHARED_LIB_SUFFIX="${IE_BUILD_POSTFIX}${CMAKE_SHARED_LIBRARY_SUFFIX}"
-)
 if(NGRAPH_LIB_VERSIONING_ENABLE)
     set_target_properties(ngraph PROPERTIES
         VERSION ${NGRAPH_VERSION}
