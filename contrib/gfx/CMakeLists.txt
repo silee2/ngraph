@@ -21,8 +21,8 @@ message(STATUS "CMAKE_VERSION: ${CMAKE_VERSION}")
 # set directory where the custom finders live
 set(NGRAPH_BASE_DIR ${CMAKE_CURRENT_LIST_DIR}/../..)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${NGRAPH_BASE_DIR}/cmake/Modules/")
-get_property(XGRAPH_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
-if(NOT XGRAPH_GENERATOR_IS_MULTI_CONFIG)
+get_property(GFX_GENERATOR_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
+if(NOT GFX_GENERATOR_IS_MULTI_CONFIG)
     if (CMAKE_BUILD_TYPE)
         set(RELEASE_TYPES Debug Release RelWithDebInfo MinSizeRel)
         list(FIND RELEASE_TYPES ${CMAKE_BUILD_TYPE} INDEX_FOUND)
@@ -85,15 +85,15 @@ if (APPLE)
     endif()
 endif()
 
-project (xgraph)
+project (gfx LANGUAGES CXX VERSION 10.0.0)
 
 # Tells if ngraph source tree is embedded in some other project
 # TRUE if embedded in source tree
 # FALSE if used standalone or as an external project
 if(NOT ("${CMAKE_SOURCE_DIR}" STREQUAL "${PROJECT_SOURCE_DIR}"))
-    set(XGRAPH_IS_EMBEDDED TRUE)
+    set(GFX_IS_EMBEDDED TRUE)
 else()
-    set(XGRAPH_IS_EMBEDDED FALSE)
+    set(GFX_IS_EMBEDDED FALSE)
 endif()
 
 if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
@@ -104,10 +104,10 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   set(CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/local" CACHE PATH "..." FORCE)
 endif()
 
-set(XGRAPH_CXX_STANDARD 17)
+set(GFX_CXX_STANDARD 17)
 if(CMAKE_CXX_STANDARD)
-    if(CMAKE_CXX_STANDARD VERSIONLESS XGRAPH_CXX_STANDARD)
-        message(FATAL_ERROR "CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD} is lower than ${XGRAPH_CXX_STANDARD}.")
+    if(CMAKE_CXX_STANDARD VERSIONLESS GFX_CXX_STANDARD)
+        message(FATAL_ERROR "CMAKE_CXX_STANDARD ${CMAKE_CXX_STANDARD} is lower than ${GFX_CXX_STANDARD}.")
     endif()
 endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -119,7 +119,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Setup CMAKE_ARGS to be forwarded to External Projects
-set(XGRAPH_FORWARD_CMAKE_ARGS
+set(GFX_FORWARD_CMAKE_ARGS
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DCMAKE_CXX_STANDARD:STRING=${CMAKE_CXX_STANDARD}
@@ -130,23 +130,23 @@ set(XGRAPH_FORWARD_CMAKE_ARGS
     )
 
 if (CMAKE_OSX_SYSROOT)
-    set(XGRAPH_FORWARD_CMAKE_ARGS
+    set(GFX_FORWARD_CMAKE_ARGS
             ${NGRAPH_FORWARD_CMAKE_ARGS}
             -DCMAKE_OSX_SYSROOT=${CMAKE_OSX_SYSROOT}
             )
 endif()
 
-if (NOT XGRAPH_GENERATOR_IS_MULTI_CONFIG)
+if (NOT GFX_GENERATOR_IS_MULTI_CONFIG)
     if(NOT CMAKE_BUILD_TYPE)
         set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING "Build type" FORCE)
     endif()
 
-    set(XGRAPH_FORWARD_CMAKE_ARGS
-            ${XGRAPH_FORWARD_CMAKE_ARGS}
+    set(GFX_FORWARD_CMAKE_ARGS
+            ${GFX_FORWARD_CMAKE_ARGS}
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             )
 endif()
-message(STATUS "XGRAPH_FORWARD_CMAKE_ARGS ${XGRAPH_FORWARD_CMAKE_ARGS}")
+message(STATUS "GFX_FORWARD_CMAKE_ARGS ${GFX_FORWARD_CMAKE_ARGS}")
 
 #-----------------------------------------------------------------------------------------------
 # Installation logic...
@@ -165,7 +165,7 @@ message(STATUS "Installation directory: ${CMAKE_INSTALL_PREFIX}")
 
 # Destinations
 if (LINUX)
-    if (DEFINED XGRAPH_RPATH)
+    if (DEFINED GFX_RPATH)
         set(CMAKE_BUILD_RPATH "$ORIGIN:${NGRAPH_RPATH}")
         set(CMAKE_INSTALL_RPATH "$ORIGIN:${NGRAPH_RPATH}")
     else()
@@ -178,9 +178,9 @@ endif()
 # External projects install directory
 #-----------------------------------------------------------------------------------------------
 
-if (NOT XGRAPH_BUILD_BASE_DIR)
-    set(XGRAPH_BUILD_BASE_DIR ${PROJECT_BINARY_DIR})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${XGRAPH_BUILD_BASE_DIR})
+if (NOT GFX_BUILD_BASE_DIR)
+    set(GFX_BUILD_BASE_DIR ${PROJECT_BINARY_DIR})
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${GFX_BUILD_BASE_DIR})
     set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${NGRAPH_BUILD_DIR})
     set(CMAKE_PDB_OUTPUT_DIRECTORY ${NGRAPH_BUILD_DIR})
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${NGRAPH_BUILD_DIR})
@@ -236,17 +236,17 @@ add_custom_target(fix-mode
 )
 
 #-----------------------------------------------------------------------------------------------
-# enable or disable output from XGRAPH_DEBUG statements
+# enable or disable output from GFX_DEBUG statements
 #-----------------------------------------------------------------------------------------------
-if(XGRAPH_DEBUG_ENABLE)
-    add_definitions(-DXGRAPH_DEBUG_ENABLE)
+if(GFX_DEBUG_ENABLE)
+    add_definitions(-DGFX_DEBUG_ENABLE)
 endif()
 
 #-----------------------------------------------------------------------------------------------
 # enable or disable deprecation warnings for old APIs
 #-----------------------------------------------------------------------------------------------
-if(XGRAPH_DEPRECATED_ENABLE)
-    add_definitions(-DXGRAPH_DEPRECATED_ENABLE)
+if(GFX_DEPRECATED_ENABLE)
+    add_definitions(-DGFX_DEPRECATED_ENABLE)
 endif()
 
 add_definitions(-DPROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}")
@@ -254,7 +254,7 @@ add_definitions(-DPROJECT_ROOT_DIR="${PROJECT_SOURCE_DIR}")
 #-----------------------------------------------------------------------------------------------
 # Print Global Options
 #-----------------------------------------------------------------------------------------------
-get_directory_property(XGRAPH_COMPILE_OPTIONS COMPILE_OPTIONS)
+get_directory_property(GFX_COMPILE_OPTIONS COMPILE_OPTIONS)
 message(STATUS "Compile Flags: ${NGRAPH_COMPILE_OPTIONS}")
 message(STATUS "Shared Link Flags: ${CMAKE_SHARED_LINKER_FLAGS}")
 message(STATUS "CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -279,32 +279,32 @@ return()
 
 include(CMakePackageConfigHelpers)
 
-export(TARGETS xgraph NAMESPACE xgraph:: FILE "${PROJECT_BINARY_DIR}/xgraphTargets.cmake")
+export(TARGETS gfx NAMESPACE gfx:: FILE "${PROJECT_BINARY_DIR}/gfxTargets.cmake")
 
-install(EXPORT xgraphTargets
-        FILE xgraphTargets.cmake
-        NAMESPACE xgraph::
+install(EXPORT gfxTargets
+        FILE gfxTargets.cmake
+        NAMESPACE gfx::
         DESTINATION ${NGRAPH_COMPONENT_PREFIX}cmake
-        COMPONENT xgraph)
+        COMPONENT gfx)
 
-configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/share/xgraphConfig.cmake.in
+configure_package_config_file(${PROJECT_SOURCE_DIR}/cmake/share/gfxConfig.cmake.in
         ${PROJECT_BINARY_DIR}/ngraphConfig.cmake
         INSTALL_DESTINATION cmake)
 
-write_basic_package_version_file(${PROJECT_BINARY_DIR}/xgraphConfigVersion.cmake
-        VERSION ${XGRAPH_VERSION}
+write_basic_package_version_file(${PROJECT_BINARY_DIR}/gfxConfigVersion.cmake
+        VERSION ${GFX_VERSION}
         COMPATIBILITY SameMajorVersion)
 
 install(FILES ${PROJECT_BINARY_DIR}/ngraphConfig.cmake
         ${PROJECT_BINARY_DIR}/ngraphConfigVersion.cmake
         DESTINATION ${NGRAPH_COMPONENT_PREFIX}cmake
-        COMPONENT xgraph)
+        COMPONENT gfx)
 
 install(DIRECTORY
     ${PROJECT_SOURCE_DIR}/licenses
     DESTINATION "${NGRAPH_COMPONENT_PREFIX}."
-    COMPONENT xgraph
+    COMPONENT gfx
 )
 
-install(FILES ${PROJECT_SOURCE_DIR}/LICENSE DESTINATION "${XGRAPH_COMPONENT_PREFIX}." COMPONENT xgraph)
-install(FILES ${PROJECT_BINARY_DIR}/VERSION DESTINATION "${XGRAPH_COMPONENT_PREFIX}." COMPONENT xgraph)
+install(FILES ${PROJECT_SOURCE_DIR}/LICENSE DESTINATION "${GFX_COMPONENT_PREFIX}." COMPONENT gfx)
+install(FILES ${PROJECT_BINARY_DIR}/VERSION DESTINATION "${GFX_COMPONENT_PREFIX}." COMPONENT gfx)
