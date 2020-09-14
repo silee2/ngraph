@@ -1,0 +1,6 @@
+Execution model:
+Multi-Thread + Vectorization
+Don't use OpenMP
+Parallel For
+Process affinity support
+Data parallelism across NUMA

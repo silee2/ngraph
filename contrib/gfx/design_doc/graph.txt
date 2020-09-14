@@ -1,20 +1,41 @@
+What is GFX?
+(Intentionally?) Ambigous acronym for now
+Graph for X(Ten)-sor
+Graph for XPU
+Graph for Xe-graphics
+Graph for X (Unknown hardware)
+GFX is design from scratch that applies learnings from nGraph and addresses its shortfalls.
+
+Common mistakes
+Model is declared (not in eager or imperative interpreted language)
+Shapes are declared in the model (Not all frameworks are simple interpreter reading from descrptions files - or a self hosting runtime. In fact the most popular ones today are just libraries hosted in host language with dynamic types.)
+Framework provides a way to capture model. That is not true unless. 1) host language/runtime creates an AST/trace for you, 2) FW library has a way to capture trace or freeze model (with python decorators) 3) backend somehow does lazy evaluation (maybe not too different from 1)
+Lacking device capability checking. Not providing fallbacks for all shapes. Most ops are support limited shapes and to make it worse what shapes are supported depends on the backend.
+No way to construct a shapeless/unbounded graph
+No dynamic shape eager evaluation method provided.
+One size fits all single solution - importer, optimizer, backend, runtime all lumped together. LLVM like reusable library would be much better.
+Need holder/proxy ops for unknown or unsupported ops to capture data and control dependencies.
+
+Resnet-50
+
 What is represented by GFX?
 Roughly mathematical equations and functions expressed by flow graph of primitives.
 Primitives maybe type insensitive but some are tied to a catagory of types (For example, boolean).
 Different level of device independent abstractions can be represented with the following.
 Analysis, transformation and optimization can happen at different level of abstraction.
-Level 0: Unbounded primitives with static attributes
-Level 1: Input Tensor shape and element type (not for every node) can be applied to make the flow graph more specific.
+Level 0: Unbounded primitives with static attributes - math function API in dynamic typed language
+Level 1: Input Tensor shape and element type (not for every node) can be applied to make the flow graph more specific. - like math library API in C
 Still there is no concept of variables or memory yet and targeting an abbstract device.
-Level 2: Shape and element types are inferred for all nodes (if they are not value dependent).
+Level 2: Shape and element types are inferred for all nodes (if they are not value dependent). - like individual API in C
 Device specific abstraction can branch off from any of the above levels.
 
-
+So far the representation is not tied to a specific device.
 
 Device
 Definition: abstraction for a entity that has storage and compute capability
 A default device must exist.
-Every device must provide a to_host method that moves value from device to host and a from_host method that moves a value from host to device.
+Every device must provide explicit API for data movement.
+A to_host method that moves value from device to host and a from_host method that moves a value from host to device.
 
 
 Value
