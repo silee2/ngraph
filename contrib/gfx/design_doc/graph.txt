@@ -1,0 +1,111 @@
+What is GFX?
+(Intentionally?) Ambigous acronym for now
+Graph for X(Ten)-sor
+Graph for XPU
+Graph for Xe-graphics
+Graph for X (Unknown hardware)
+GFX is design from scratch that applies learnings from nGraph and addresses its shortfalls.
+
+Common mistakes
+Model is declared (not in eager or imperative interpreted language)
+Shapes are declared in the model (Not all frameworks are simple interpreter reading from descrptions files - or a self hosting runtime. In fact the most popular ones today are just libraries hosted in host language with dynamic types.)
+Framework provides a way to capture model. That is not true unless. 1) host language/runtime creates an AST/trace for you, 2) FW library has a way to capture trace or freeze model (with python decorators) 3) backend somehow does lazy evaluation (maybe not too different from 1)
+Lacking device capability checking. Not providing fallbacks for all shapes. Most ops are support limited shapes and to make it worse what shapes are supported depends on the backend.
+No way to construct a shapeless/unbounded graph
+No dynamic shape eager evaluation method provided.
+One size fits all single solution - importer, optimizer, backend, runtime all lumped together. LLVM like reusable library would be much better.
+Need holder/proxy ops for unknown or unsupported ops to capture data and control dependencies.
+
+Resnet-50
+
+What is represented by GFX?
+Roughly mathematical equations and functions expressed by flow graph of primitives.
+Primitives maybe type insensitive but some are tied to a catagory of types (For example, boolean).
+Different level of device independent abstractions can be represented with the following.
+Analysis, transformation and optimization can happen at different level of abstraction.
+Level 0: Unbounded primitives with static attributes - math function API in dynamic typed language
+Level 1: Input Tensor shape and element type (not for every node) can be applied to make the flow graph more specific. - like math library API in C
+Still there is no concept of variables or memory yet and targeting an abbstract device.
+Level 2: Shape and element types are inferred for all nodes (if they are not value dependent). - like individual API in C
+Device specific abstraction can branch off from any of the above levels.
+
+So far the representation is not tied to a specific device.
+
+Device
+Definition: abstraction for a entity that has storage and compute capability
+A default device must exist.
+Every device must provide explicit API for data movement.
+A to_host method that moves value from device to host and a from_host method that moves a value from host to device.
+
+
+Value
+Definition: an entity that is device independent
+Value is opaque and can only be accessed with to_plain method
+This enables lazy evaluation as Value can actually be a built up as a higher order function that produces an entity.
+Value is wrapper that is applied to node and binds inputs to the node.
+Value : Tensor
+Value : (Value)* -> Node
+
+Node
+Definition: node is an entity that can have zero or more runtime inputs and produces 1 or 2 runtime output (that may feed in to many nodes.)
+First output is a special output (Output 0) that represents signal for state change.
+Node are like math functions except that zero input is allowed and has a special output in addition to zero or more output.
+
+Node can have static attributes.
+Node does not need to bind inputs or outputs at construction time. Static atrributes need to be given at construction.
+Every node must provide an eval method, given ordered host input value(s), produces host output value.
+Devices can provide an eval method for nodes.
+Every node must provide an memory_estimate() and compute_estimate() method
+Every node must provide an infer output shape method
+Every node must provide an forward method
+
+"Nodes are device independent"
+"Values live on device"
+"Graph describes computation(flow) in an abstract way."
+
+
+Output (def-use chain): captures a single output value from a node and connects it to input(s) of one or more nodes.
+
+Input (use-def chain): captures a single input value that is produced from a node.
+
+Op: Op is a collection of connected nodes (or pattern of nodes)
+Op has inputs and output(s)
+Op must provide an ordered mapping of its inputs and outputs to internal node's inputs and outputs.
+Op is a graph builder pattern
+Device may provide a specialized eval method for an Op. If not, a fallback that calls eval methods of internal nodes is provided.
+
+
+Op(Pattern) Matching:
+
+Graph execution:
+- Define as go (eager)
+- Frozen graph
+- Asynchronous
+- Lazy
+- Multi device
+- Hetro device
+
+Shape:
+How does output shape of value change?
+Padding - changes dim by counts (add subtract)
+Windowed operation - Decides rank and dim through output iterator
+Reduction - - Changes dim by factors (multiply)
+Contraction - Inner product, changes rank
+Select - Changes rank and dim
+
+How does input shape of value change?
+Auto broadcasting - tensor data does not need to change. rank, dim and stride needs to be updated.
+
+Shape inference:
+1. input shape inference: needed for auto broadcasting (done by either stride/rank update or physical broadcast).
+2. output shape inference: needed for output (device) memory allocation.
+
+Eager Evaluation(Simple Interpreter):
+Simple kernels - Does not handle complex stride, physical broadcast is needed, blocked format is not supported.
+Input shape infererence, output shape inference, dispatch kernel.
+
+Lazy Evaluation
+Input shape inference, output shape inference, forward futures.
+Futures eval (explicit read/write request) triggers memory allocation and actual execution.
+
+Device memory allocation
